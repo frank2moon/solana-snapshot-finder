@@ -453,6 +453,10 @@ def main_worker():
         print(f'Searching information about snapshots on all found RPCs')
         pool = ThreadPool()
         pool.map(get_snapshot_slot, rpc_nodes)
+        # trim out all nodes that don't have RPC
+        for node in rpc_nodes:
+            if node["snapshot_address"] is None:
+                rpc_nodes.remove(node)
         logger.info(f'Found suitable RPCs: {len(json_data["nodes"])}')
         logger.info(f'The following information shows for what reason and how many RPCs were skipped.'
         f'Timeout most probably mean, that node RPC port does not respond (port is closed)\n'
@@ -464,9 +468,7 @@ def main_worker():
             sys.exit()
 
         # sort list of rpc node by SORT_ORDER (latency)
-        logger.info(json_data["nodes"])
         rpc_nodes_sorted = sorted(json_data["nodes"], key=lambda k: k[SORT_ORDER])
-        logger.info(rpc_nodes_sorted)
 
         json_data.update({
             "last_update_at": time.time(),
